@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro de Asistencia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4">Registro de Asistencia</h1>
+
+    <form id="formulario" class="flex gap-2 mb-4">
+      <input type="text" id="nombre" placeholder="Tu nombre" required
+             class="flex-1 border border-gray-300 p-2 rounded" />
+      <button type="submit"
+              class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Registrar
+      </button>
+    </form>
+
+    <button id="reset"
+            class="mb-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+      Nueva lista
+    </button>
+
+    <h2 class="text-xl font-semibold mb-2">Lista de Asistencia</h2>
+    <table class="w-full text-left border">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="p-2">Nombre</th>
+          <th class="p-2">Hora</th>
+          <th class="p-2">Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tabla"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const horaLimite = "22:30";
+    const formulario = document.getElementById("formulario");
+    const tabla = document.getElementById("tabla");
+    const resetBtn = document.getElementById("reset");
+
+    let registros = JSON.parse(localStorage.getItem("asistencia")) || [];
+
+    function renderizarTabla() {
+      tabla.innerHTML = "";
+      registros.forEach(({ nombre, hora, estado }) => {
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td class="p-2">${nombre}</td>
+          <td class="p-2">${hora}</td>
+          <td class="p-2 ${estado === "Tarde" ? "text-red-600 font-bold" : ""}">${estado}</td>
+        `;
+        tabla.appendChild(fila);
+      });
+    }
+
+    formulario.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById("nombre").value.trim();
+      if (!nombre) return;
+
+      const ahora = new Date();
+      const hora = ahora.toTimeString().slice(0, 5);
+      const estado = hora <= horaLimite ? "A tiempo" : "Tarde";
+
+      registros.push({ nombre, hora, estado });
+      localStorage.setItem("asistencia", JSON.stringify(registros));
+      renderizarTabla();
+      formulario.reset();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      if (confirm("¿Estás seguro de que quieres borrar toda la lista?")) {
+        localStorage.removeItem("asistencia");
+        registros = [];
+        renderizarTabla();
+      }
+    });
+
+    renderizarTabla();
+  </script>
+</body>
+</html>
